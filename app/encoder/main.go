@@ -64,7 +64,8 @@ func main() {
 			fmt.Printf("error opening input file: %s\n", err)
 			os.Exit(1)
 		}
-		encodedSeq := coder.Encode(inputSeq)
+		encodedSeq, n := coder.Encode(inputSeq)
+		fmt.Println(n)
 
 		var outPath = os.Args[2]
 		if isDir {

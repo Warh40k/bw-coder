@@ -1,35 +1,62 @@
 package coder
 
-import "slices"
+import (
+	"bytes"
+	"slices"
+)
 
-func Encode(seq []byte) []byte {
+// составить таблицу сдвигов исходной строки
+// отсортировать в лексикографическом порядке
+// извлечь последние буквы каждого сдвига - получим последний столбец
+// как-то определить номер исходной строки - видимо, путем полного сравнения :(
+// но можно сравнивать не все сдвиги, а только те, что начинаются и заканчиваются на ту же букву
+func Encode(seq []byte) ([]byte, int) {
 	slen := len(seq)
-	var fcol, lcol []byte
-	fcol = make([]byte, slen)
-	copy(fcol, seq)
+	var lcol []byte
+	var cycled [][]byte
 	lcol = make([]byte, slen)
-	slices.Sort(fcol)
+	cycled = make([][]byte, slen)
+	cycled[0] = seq
 
-	var pos int
-
-	// сделать счетчик для одинаковых букв
-	// когда нашел одну букву, след такая же должна начинаться с той же позиции
-	for i := 0; i < slen; i++ {
-		if i == 0 || fcol[i] != fcol[i-1] {
-			pos = slen
+	// получение таблицы сдвигов
+	for i := 1; i < slen; i++ {
+		cycled[i] = make([]byte, slen)
+		j := i
+		m := 0
+		for m < slen {
+			if j == slen {
+				j = 0
+			}
+			cycled[i][m] = seq[j]
+			m++
+			j++
 		}
-		for j := pos - 1; j >= 0; j-- {
-			if seq[j] == fcol[i] {
-				prev := j - 1
-				if j-1 < 0 {
-					prev = slen - 1
-				}
-				lcol[i] = seq[prev]
-				pos = prev + 1
-				break
+	}
+
+	// лексикографическая сортировка
+	slices.SortFunc(cycled, func(a, b []byte) int {
+		for i := range a {
+			if a[i] > b[i] {
+				return 1
+			} else if a[i] < b[i] {
+				return -1
+			}
+		}
+		return 0
+	})
+
+	// получить первый и последний столбец
+	// и найти номер исходной строки
+	last := slen - 1
+	var n int
+	for i := 0; i < slen; i++ {
+		lcol[i] = cycled[i][last]
+		if cycled[i][0] == seq[0] && cycled[i][last] == seq[last] {
+			if bytes.Compare(cycled[i], seq) == 0 {
+				n = i
 			}
 		}
 	}
 
-	return lcol
+	return lcol, n
 }
