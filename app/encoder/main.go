@@ -1,15 +1,20 @@
 package main
 
 import (
+	"bufio"
 	"bw-coding/coder"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
 var isDir bool
+
+const CHUNK_SIZE = 2 << 11
 
 func main() {
 	if len(os.Args) < 3 {
@@ -59,23 +64,40 @@ func main() {
 	}
 
 	for i := 0; i < len(inFiles); i++ {
-		inputSeq, err := coder.GetSequence(inFiles[i])
+		// разбить входной файл на чанки
+		var input, output *os.File
+		input, err = os.Open(inFiles[i])
 		if err != nil {
 			fmt.Printf("error opening input file: %s\n", err)
 			os.Exit(1)
 		}
-		encodedSeq, n := coder.Encode(inputSeq)
-		fmt.Println(n)
-
 		var outPath = os.Args[2]
 		if isDir {
 			outPath = filepath.Join(os.Args[2], strings.Split(inFiles[i], os.Args[1])[1])
 		}
-
-		err = coder.SaveSequence(outPath, encodedSeq)
+		output, err = os.Create(outPath)
 		if err != nil {
 			fmt.Printf("error creating output file: %s\n", err)
 			os.Exit(1)
 		}
+		reader := bufio.NewReader(input)
+		writer := bufio.NewWriter(output)
+		var chunk = make([]byte, CHUNK_SIZE)
+		writer.WriteString(strconv.Itoa(CHUNK_SIZE))
+
+		for {
+			var n, slen int
+			slen, err = reader.Read(chunk)
+			if err == io.EOF {
+				break
+			}
+			var lcol = make([]byte, slen)
+			n = coder.Encode(chunk, lcol, slen)
+			writer.WriteString(strconv.Itoa(n))
+			writer.Write(lcol)
+		}
+		writer.Flush()
+		input.Close()
+		output.Close()
 	}
 }

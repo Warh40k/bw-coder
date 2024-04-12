@@ -1,7 +1,6 @@
 package coder
 
 import (
-	"fmt"
 	"slices"
 )
 
@@ -10,11 +9,9 @@ import (
 // извлечь последние буквы каждого сдвига - получим последний столбец
 // как-то определить номер исходной строки - видимо, путем полного сравнения :(
 // но можно сравнивать не все сдвиги, а только те, что начинаются и заканчиваются на ту же букву
-func Encode(seq []byte) ([]byte, int) {
-	slen := len(seq)
-	var fcol, lcol []byte
+func Encode(seq, lcol []byte, slen int) int {
+	var fcol []byte
 	var cycled = make([][]byte, slen)
-	lcol = make([]byte, slen)
 	fcol = make([]byte, slen)
 	copy(fcol, seq)
 	slices.Sort(fcol)
@@ -59,10 +56,10 @@ func Encode(seq []byte) ([]byte, int) {
 				j = 0
 			}
 			if fcol[i] == '_' {
-				fmt.Println()
+				//fmt.Println()
 			}
 			if seq[j] == fcol[i] {
-				cycled[groupCount] = slices.Concat(seq[j:], seq[:j])
+				cycled[groupCount] = slices.Concat(seq[j:slen], seq[:j])
 				groupCount++
 				pos = j + 1
 				break
@@ -92,5 +89,5 @@ func Encode(seq []byte) ([]byte, int) {
 		lcol[i-groupCount+m] = cycled[m][last]
 	}
 
-	return lcol, n
+	return n
 }
