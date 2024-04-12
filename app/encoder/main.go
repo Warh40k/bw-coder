@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"math"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
 var isDir bool
 
-const CHUNK_SIZE = 2 << 11
+const CHUNK_SIZE = 16
 
 func main() {
 	if len(os.Args) < 3 {
@@ -84,8 +84,8 @@ func main() {
 		}
 		reader := bufio.NewReader(input)
 		writer := bufio.NewWriter(output)
-		var chunk = make([]byte, CHUNK_SIZE)
-		writer.WriteString(strconv.Itoa(CHUNK_SIZE))
+		var chunk = make([]byte, CHUNK_SIZE) // чанк (в байтах)
+		var bitCount = int(math.Ceil(math.Log2(float64(CHUNK_SIZE))))
 
 		for {
 			var n, slen int
@@ -96,11 +96,21 @@ func main() {
 			var lcol = make([]byte, slen)
 			n = coder.Encode(chunk, lcol, slen)
 			fmt.Println(n)
-			//writer.WriteString(strconv.Itoa(n))
+			bnum := getBin(n, bitCount)
+			writer.WriteString(bnum)
 			writer.Write(lcol)
 		}
 		writer.Flush()
 		input.Close()
 		output.Close()
 	}
+}
+
+func getBin(num, bitCount int) string {
+	var numBit = 1
+	if num != 0 {
+		numBit = int(math.Ceil(math.Log2(float64(num))))
+	}
+	zeroCount := bitCount - numBit
+	return strings.Repeat("0", zeroCount) + fmt.Sprintf("%b", num)
 }
