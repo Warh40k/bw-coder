@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bw-coding/coder"
 	"fmt"
 	"io"
@@ -17,7 +16,7 @@ var (
 	bitSize = int(math.Ceil(math.Log2(float64(CHUNK_SIZE))))
 )
 
-const CHUNK_SIZE = 128 // в байтах
+const CHUNK_SIZE = 4096 // в байтах
 
 func main() {
 	if len(os.Args) < 3 {
@@ -82,23 +81,24 @@ func main() {
 			fmt.Printf("error creating output file: %s\n", err)
 			os.Exit(1)
 		}
-		reader := bufio.NewReader(input)
-		writer := bufio.NewWriter(output)
+		//reader := bufio.NewReader(input)
+		//writer := bufio.NewWriter(output)
 		var chunk = make([]byte, CHUNK_SIZE) // чанк (в байтах)
 		var bnum = make([]byte, bitSize)
 		var n, slen int
 
 		for {
-			_, err = reader.Read(bnum)
+			_, err = input.Read(bnum)
 			n = getDec(bnum)
-			slen, err = reader.Read(chunk)
+			slen, err = input.Read(chunk)
+
 			if err == io.EOF {
 				break
 			}
 			seq := coder.Decode(chunk, slen, n)
-			writer.Write(seq)
+			output.Write(seq)
+			//writer.Flush()
 		}
-		writer.Flush()
 		input.Close()
 		output.Close()
 	}

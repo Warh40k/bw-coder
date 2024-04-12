@@ -14,7 +14,8 @@ import (
 
 var isDir bool
 
-const CHUNK_SIZE = 128
+// TODO: подумать, как передавать размер чанка (необяз)
+const CHUNK_SIZE = 4096
 
 func main() {
 	if len(os.Args) < 3 {
