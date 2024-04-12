@@ -17,7 +17,7 @@ var (
 	bitSize = int(math.Ceil(math.Log2(float64(CHUNK_SIZE))))
 )
 
-const CHUNK_SIZE = 16 // в байтах
+const CHUNK_SIZE = 128 // в байтах
 
 func main() {
 	if len(os.Args) < 3 {

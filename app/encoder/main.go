@@ -14,7 +14,7 @@ import (
 
 var isDir bool
 
-const CHUNK_SIZE = 16
+const CHUNK_SIZE = 128
 
 func main() {
 	if len(os.Args) < 3 {
@@ -106,7 +106,7 @@ func main() {
 func getBin(num, bitCount int) string {
 	var numBit = 1
 	if num != 0 {
-		numBit = int(math.Ceil(math.Log2(float64(num))))
+		numBit = int(math.Log2(float64(num))) + 1
 	}
 	zeroCount := bitCount - numBit
 	return strings.Repeat("0", zeroCount) + fmt.Sprintf("%b", num)
