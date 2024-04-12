@@ -62,9 +62,11 @@ func main() {
 			os.Exit(1)
 		}
 	}
-
+	// TODO: разбить main на функции
+	// TODO: подумать, где копить длины последовательностей
+	// TODO: сделать подсчет номеров исходных последовательностей
+	// TODO: передавать результат преобразования не в файл, а в "стопку книг"
 	for i := 0; i < len(inFiles); i++ {
-		// разбить входной файл на чанки
 		var input, output *os.File
 		input, err = os.Open(inFiles[i])
 		if err != nil {
@@ -93,7 +95,8 @@ func main() {
 			}
 			var lcol = make([]byte, slen)
 			n = coder.Encode(chunk, lcol, slen)
-			writer.WriteString(strconv.Itoa(n))
+			fmt.Println(n)
+			//writer.WriteString(strconv.Itoa(n))
 			writer.Write(lcol)
 		}
 		writer.Flush()
