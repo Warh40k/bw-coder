@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+// TODO: запускать в горутинах
 var (
 	isDir   bool
 	bitSize = int(math.Ceil(math.Log2(float64(CHUNK_SIZE))))
@@ -81,8 +82,6 @@ func main() {
 			fmt.Printf("error creating output file: %s\n", err)
 			os.Exit(1)
 		}
-		//reader := bufio.NewReader(input)
-		//writer := bufio.NewWriter(output)
 		var chunk = make([]byte, CHUNK_SIZE) // чанк (в байтах)
 		var bnum = make([]byte, bitSize)
 		var n, slen int

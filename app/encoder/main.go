@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bw-coding/coder"
 	"fmt"
 	"io"
@@ -10,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 var isDir bool
@@ -63,44 +63,50 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	// TODO: разбить main на функции
-	// TODO: передавать результат преобразования не в файл, а в "стопку книг"
+	wg := sync.WaitGroup{}
 	for i := 0; i < len(inFiles); i++ {
-		var input, output *os.File
-		input, err = os.Open(inFiles[i])
-		if err != nil {
-			fmt.Printf("error opening input file: %s\n", err)
-			os.Exit(1)
-		}
-		var outPath = os.Args[2]
-		if isDir {
-			outPath = filepath.Join(os.Args[2], strings.Split(inFiles[i], os.Args[1])[1])
-		}
-		output, err = os.Create(outPath)
-		if err != nil {
-			fmt.Printf("error creating output file: %s\n", err)
-			os.Exit(1)
-		}
-		reader := bufio.NewReader(input)
-		writer := bufio.NewWriter(output)
-		var chunk = make([]byte, CHUNK_SIZE) // чанк (в байтах)
-		var bitCount = int(math.Ceil(math.Log2(float64(CHUNK_SIZE))))
+		wg.Add(1)
+		go processFile(inFiles[i], &wg)
+	}
+	wg.Wait()
+}
 
-		for {
-			var n, slen int
-			slen, err = reader.Read(chunk)
-			if err == io.EOF {
-				break
-			}
-			var lcol = make([]byte, slen)
-			n = coder.Encode(chunk, lcol, slen)
-			bnum := getBin(n, bitCount)
-			writer.WriteString(bnum)
-			writer.Write(lcol)
+func processFile(path string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	var input, output *os.File
+	var err error
+	input, err = os.Open(path)
+	if err != nil {
+		fmt.Printf("error opening input file: %s\n", err)
+		os.Exit(1)
+	}
+	defer input.Close()
+
+	var outPath = os.Args[2]
+	if isDir {
+		outPath = filepath.Join(os.Args[2], strings.Split(path, os.Args[1])[1])
+	}
+	output, err = os.Create(outPath)
+	if err != nil {
+		fmt.Printf("error creating output file: %s\n", err)
+		os.Exit(1)
+	}
+	defer output.Close()
+
+	var chunk = make([]byte, CHUNK_SIZE) // чанк (в байтах)
+	var bitCount = int(math.Ceil(math.Log2(float64(CHUNK_SIZE))))
+
+	for {
+		var n, slen int
+		slen, err = input.Read(chunk)
+		if err == io.EOF {
+			break
 		}
-		writer.Flush()
-		input.Close()
-		output.Close()
+		var lcol = make([]byte, slen)
+		n = coder.Encode(chunk, lcol, slen)
+		bnum := getBin(n, bitCount)
+		output.WriteString(bnum)
+		output.Write(lcol)
 	}
 }
 

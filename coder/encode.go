@@ -5,24 +5,23 @@ import (
 	"slices"
 )
 
-var last int
-var n int
-
 func Encode(seq, lcol []byte, slen int) int {
+	var n int
+
 	var fcol []byte
 	var cycled = make([][]byte, slen)
 	fcol = make([]byte, slen)
 	copy(fcol, seq)
 	slices.Sort(fcol)
 
-	var i int
-	var pos int
-	var groupCount int
-	last = slen - 1
+	var i, temp, pos, groupCount int
 
 	for i = 0; i < slen; i++ {
 		if i != 0 && fcol[i] != fcol[i-1] {
-			getLcol(cycled, seq, lcol, groupCount, i)
+			temp = getLcol(cycled, seq, lcol, groupCount, i, slen-1)
+			if temp != -1 {
+				n = temp
+			}
 			pos = 0
 			groupCount = 0
 		}
@@ -43,12 +42,15 @@ func Encode(seq, lcol []byte, slen int) int {
 		}
 	}
 
-	getLcol(cycled, seq, lcol, groupCount, i)
-
+	temp = getLcol(cycled, seq, lcol, groupCount, i, slen-1)
+	if temp != -1 {
+		n = temp
+	}
 	return n
 }
 
-func getLcol(cycled [][]byte, seq, lcol []byte, groupCount int, i int) {
+func getLcol(cycled [][]byte, seq, lcol []byte, groupCount, i, last int) int {
+	var n = -1
 	slices.SortFunc(cycled, func(a, b []byte) int {
 		if a == nil && b != nil {
 			return 1
@@ -78,6 +80,7 @@ func getLcol(cycled [][]byte, seq, lcol []byte, groupCount int, i int) {
 		}
 	}
 	clear(cycled)
+	return n
 }
 
 func isEqual(a, b []byte) bool {
