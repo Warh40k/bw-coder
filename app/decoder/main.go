@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bw-coding/coder"
 	"fmt"
+	"github.com/Warh40k/bw-coder/coder"
 	"io"
 	"io/fs"
 	"math"
