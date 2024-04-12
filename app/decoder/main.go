@@ -12,13 +12,16 @@ import (
 	"strings"
 )
 
-var isDir bool
+var (
+	isDir   bool
+	bitSize = int(math.Ceil(math.Log2(float64(CHUNK_SIZE))))
+)
 
-const CHUNK_SIZE = 16
+const CHUNK_SIZE = 16 // в байтах
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Println("usage: bwencoder <input path> <output path>")
+		fmt.Println("usage: bwdecoder <input path> <output path>")
 		os.Exit(1)
 	}
 
@@ -62,8 +65,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	// TODO: разбить main на функции
-	// TODO: передавать результат преобразования не в файл, а в "стопку книг"
+
 	for i := 0; i < len(inFiles); i++ {
 		var input, output *os.File
 		input, err = os.Open(inFiles[i])
@@ -83,19 +85,18 @@ func main() {
 		reader := bufio.NewReader(input)
 		writer := bufio.NewWriter(output)
 		var chunk = make([]byte, CHUNK_SIZE) // чанк (в байтах)
-		var bitCount = int(math.Ceil(math.Log2(float64(CHUNK_SIZE))))
+		var bnum = make([]byte, bitSize)
+		var n, slen int
 
 		for {
-			var n, slen int
+			_, err = reader.Read(bnum)
+			n = getDec(bnum)
 			slen, err = reader.Read(chunk)
 			if err == io.EOF {
 				break
 			}
-			var lcol = make([]byte, slen)
-			n = coder.Encode(chunk, lcol, slen)
-			bnum := getBin(n, bitCount)
-			writer.WriteString(bnum)
-			writer.Write(lcol)
+			seq := coder.Decode(chunk, slen, n)
+			writer.Write(seq)
 		}
 		writer.Flush()
 		input.Close()
@@ -103,11 +104,11 @@ func main() {
 	}
 }
 
-func getBin(num, bitCount int) string {
-	var numBit = 1
-	if num != 0 {
-		numBit = int(math.Ceil(math.Log2(float64(num))))
+func getDec(bnum []byte) int {
+	var result int
+	for i := bitSize - 1; i >= 0; i-- {
+		result += 1 << (bitSize - i - 1) * int(bnum[i]-48) // 0 или 1
 	}
-	zeroCount := bitCount - numBit
-	return strings.Repeat("0", zeroCount) + fmt.Sprintf("%b", num)
+
+	return result
 }
