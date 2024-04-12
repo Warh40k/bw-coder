@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 // TODO: запускать в горутинах
@@ -66,41 +67,54 @@ func main() {
 		}
 	}
 
+	wg := sync.WaitGroup{}
 	for i := 0; i < len(inFiles); i++ {
-		var input, output *os.File
-		input, err = os.Open(inFiles[i])
-		if err != nil {
-			fmt.Printf("error opening input file: %s\n", err)
-			os.Exit(1)
-		}
-		var outPath = os.Args[2]
-		if isDir {
-			outPath = filepath.Join(os.Args[2], strings.Split(inFiles[i], os.Args[1])[1])
-		}
-		output, err = os.Create(outPath)
-		if err != nil {
-			fmt.Printf("error creating output file: %s\n", err)
-			os.Exit(1)
-		}
-		var chunk = make([]byte, CHUNK_SIZE) // чанк (в байтах)
-		var bnum = make([]byte, bitSize)
-		var n, slen int
-
-		for {
-			_, err = input.Read(bnum)
-			n = getDec(bnum)
-			slen, err = input.Read(chunk)
-
-			if err == io.EOF {
-				break
-			}
-			seq := coder.Decode(chunk, slen, n)
-			output.Write(seq)
-			//writer.Flush()
-		}
-		input.Close()
-		output.Close()
+		wg.Add(1)
+		go processFile(inFiles[i], &wg)
 	}
+	wg.Wait()
+}
+
+func processFile(path string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	var input, output *os.File
+	var err error
+
+	input, err = os.Open(path)
+	if err != nil {
+		fmt.Printf("error opening input file: %s\n", err)
+		os.Exit(1)
+	}
+	defer input.Close()
+
+	var outPath = os.Args[2]
+	if isDir {
+		outPath = filepath.Join(os.Args[2], strings.Split(path, os.Args[1])[1])
+	}
+
+	output, err = os.Create(outPath)
+	if err != nil {
+		fmt.Printf("error creating output file: %s\n", err)
+		os.Exit(1)
+	}
+	defer output.Close()
+
+	var chunk = make([]byte, CHUNK_SIZE) // чанк (в байтах)
+	var bnum = make([]byte, bitSize)
+	var n, slen int
+
+	for {
+		_, err = input.Read(bnum)
+		n = getDec(bnum)
+		slen, err = input.Read(chunk)
+
+		if err == io.EOF {
+			break
+		}
+		seq := coder.Decode(chunk, slen, n)
+		output.Write(seq)
+	}
+
 }
 
 func getDec(bnum []byte) int {
