@@ -12,13 +12,13 @@ import (
 	"sync"
 )
 
+const CHUNK_SIZE = 4096 // в байтах
+
 // TODO: запускать в горутинах
 var (
 	isDir   bool
 	bitSize = int(math.Ceil(math.Log2(float64(CHUNK_SIZE))))
 )
-
-const CHUNK_SIZE = 4096 // в байтах
 
 func main() {
 	if len(os.Args) < 3 {
@@ -105,7 +105,7 @@ func processFile(path string, wg *sync.WaitGroup) {
 
 	for {
 		_, err = input.Read(bnum)
-		n = getDec(bnum)
+		n = bwcoder.GetDec(bnum, bitSize)
 		slen, err = input.Read(chunk)
 
 		if err == io.EOF {
@@ -115,13 +115,4 @@ func processFile(path string, wg *sync.WaitGroup) {
 		output.Write(seq)
 	}
 
-}
-
-func getDec(bnum []byte) int {
-	var result int
-	for i := bitSize - 1; i >= 0; i-- {
-		result += 1 << (bitSize - i - 1) * int(bnum[i]-48) // 0 или 1
-	}
-
-	return result
 }

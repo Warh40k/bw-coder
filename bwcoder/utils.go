@@ -1,44 +1,25 @@
 package bwcoder
 
 import (
-	"bufio"
-	"io"
-	"os"
+	"fmt"
+	"math"
+	"strings"
 )
 
-// GetSequence получить входные данные из файла
-func GetSequence(inputPath string) ([]byte, error) {
-	file, err := os.Open(inputPath)
-	if err != nil {
-		return nil, err
+func GetBin(num, bitCount int) string {
+	var numBit = 1
+	if num != 0 {
+		numBit = int(math.Log2(float64(num))) + 1
 	}
-	defer file.Close()
-
-	reader := bufio.NewReader(file)
-
-	var inputSeq = make([]byte, 0)
-	for {
-		b, err := reader.ReadByte()
-		if err == io.EOF {
-			break
-		}
-		inputSeq = append(inputSeq, b)
-	}
-	return inputSeq, nil
+	zeroCount := bitCount - numBit
+	return strings.Repeat("0", zeroCount) + fmt.Sprintf("%b", num)
 }
 
-// SaveSequence результат в файл
-func SaveSequence(outputPath string, outputSeq []byte) error {
-	file, err := os.Create(outputPath)
-	if err != nil {
-		return err
+func GetDec(bnum []byte, bitSize int) int {
+	var result int
+	for i := bitSize - 1; i >= 0; i-- {
+		result += 1 << (bitSize - i - 1) * int(bnum[i]-48) // 0 или 1
 	}
-	defer file.Close()
 
-	writer := bufio.NewWriter(file)
-
-	writer.Write(outputSeq)
-	writer.Flush()
-
-	return nil
+	return result
 }

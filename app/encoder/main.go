@@ -104,17 +104,8 @@ func processFile(path string, wg *sync.WaitGroup) {
 		}
 		var lcol = make([]byte, slen)
 		n = bwcoder.Encode(chunk, lcol, slen)
-		bnum := getBin(n, bitCount)
+		bnum := bwcoder.GetBin(n, bitCount)
 		output.WriteString(bnum)
 		output.Write(lcol)
 	}
-}
-
-func getBin(num, bitCount int) string {
-	var numBit = 1
-	if num != 0 {
-		numBit = int(math.Log2(float64(num))) + 1
-	}
-	zeroCount := bitCount - numBit
-	return strings.Repeat("0", zeroCount) + fmt.Sprintf("%b", num)
 }
