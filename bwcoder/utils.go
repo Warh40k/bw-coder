@@ -1,4 +1,4 @@
-package coder
+package bwcoder
 
 import (
 	"bufio"

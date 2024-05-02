@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/Warh40k/bw-coder/coder"
+	"github.com/Warh40k/bw-coder/bwcoder"
 	"io"
 	"io/fs"
 	"math"
@@ -111,7 +111,7 @@ func processFile(path string, wg *sync.WaitGroup) {
 		if err == io.EOF {
 			break
 		}
-		seq := coder.Decode(chunk, slen, n)
+		seq := bwcoder.Decode(chunk, slen, n)
 		output.Write(seq)
 	}
 

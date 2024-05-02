@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/Warh40k/bw-coder/coder"
+	"github.com/Warh40k/bw-coder/bwcoder"
 	"io"
 	"io/fs"
 	"math"
@@ -103,7 +103,7 @@ func processFile(path string, wg *sync.WaitGroup) {
 			break
 		}
 		var lcol = make([]byte, slen)
-		n = coder.Encode(chunk, lcol, slen)
+		n = bwcoder.Encode(chunk, lcol, slen)
 		bnum := getBin(n, bitCount)
 		output.WriteString(bnum)
 		output.Write(lcol)
