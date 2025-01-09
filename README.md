@@ -1,4 +1,4 @@
-# Go library for Burrows-Wheeler transform
+# Go library for Burrows-Wheeler transformation
 ## Usage
 ```shell
 go get github.com/Warh40k/bw-coder
